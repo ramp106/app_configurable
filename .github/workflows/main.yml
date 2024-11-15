@@ -85,5 +85,5 @@ jobs:
         chmod 600 ~/.gem/credentials
         printf -- "---\n:github: Bearer ${{ secrets.GITHUB_TOKEN }}\n" > ~/.gem/credentials
         ruby .github/workflows/set_version.rb
-        gem build app-configurable
-        gem push app-configurable-*.gem --key github --host https://rubygems.pkg.github.com/ramp106
+        gem build app_configurable
+        gem push app_configurable-*.gem --key github --host https://rubygems.pkg.github.com/ramp106
