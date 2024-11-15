@@ -2,10 +2,12 @@
 
 require_relative 'app_configurable/version'
 
-require 'active_support/string_inquirer'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/string_inquirer'
+
 require 'dotenv'
 
 module AppConfigurable
@@ -101,6 +103,7 @@ module AppConfigurable
       AppConfigurable.available_config_attributes << method(name)
     end
 
+    # @return [AppConfigurable]
     def instance
       @instance ||= new
     end
