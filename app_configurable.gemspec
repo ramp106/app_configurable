@@ -34,10 +34,10 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'byebug'
   spec.add_development_dependency 'rails', '> 7.1'
-  spec.add_development_dependency 'rubocop-performance', '~> 1.18'
-  spec.add_development_dependency 'rubocop-rails', '~> 2.11'
-  spec.add_development_dependency 'rubocop-rspec', '~> 2.0'
-  spec.add_development_dependency 'rubocop-rspec_rails', '~> 2.0'
+  spec.add_development_dependency 'rubocop-performance', '~> 1.23.0'
+  spec.add_development_dependency 'rubocop-rails', '~> 2.27.0'
+  spec.add_development_dependency 'rubocop-rspec', '~> 3.2.0'
+  spec.add_development_dependency 'rubocop-rspec_rails', '~> 2.30.0'
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
