@@ -1,0 +1,97 @@
+Layout/BlockAlignment:
+  EnforcedStyleAlignWith: start_of_block
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: normal
+
+Layout/LineLength:
+  Max: 140
+
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+
+Layout/FirstHashElementLineBreak:
+  Enabled: true
+
+Layout/MultilineAssignmentLayout:
+  Enabled: true
+  EnforcedStyle: new_line
+
+Lint/Debugger: # don't leave binding.pry
+  Enabled: true
+  Exclude: []
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: true
+  Exclude:
+    - 'spec/**/*'
+
+Lint/EmptyBlock:
+  Enabled: true
+  Exclude:
+    - 'spec/factories/**/*'
+
+Lint/MissingSuper:
+  Enabled: true
+  Exclude:
+      - 'app/graphql/sources/**/*'
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 20
+  Exclude:
+    - lib/**/*.rake
+    - spec/support/fixtures_setup.rb
+
+Metrics/AbcSize:
+  CountRepeatedAttributes: false
+  Exclude:
+    - lib/**/*.rake
+    - spec/support/fixtures_setup.rb
+    - app/models/ability.rb
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - lib/**/*.rake
+
+Metrics/BlockLength:
+  Exclude:
+    - app/admin/**/*.rb
+    - app/views/admin/**/*.arb
+    - lib/**/*.rake
+    - config/initializers/*.rb
+    - config/routes.rb
+
+Naming/PredicateName:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Naming/BlockForwarding:
+  EnforcedStyle: explicit
+
+Style/Documentation:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/FormatString:
+  EnforcedStyle: percent
+
+Style/FormatStringToken:
+  EnforcedStyle: template
+
+Style/ArgumentsForwarding:
+  UseAnonymousForwarding: false
+
+Style/GlobalVars:
+  AllowedVariables:
+    - $redis

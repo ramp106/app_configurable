@@ -1,0 +1,42 @@
+RSpec/BeforeAfterAll: # we use before/after blocks to setup es tests
+  Enabled: false
+
+RSpec/DescribeClass:
+  Enabled: true
+  Exclude:
+    - spec/lib/tasks/**/*
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 15
+
+RSpec/MultipleExpectations:
+  Max: 15
+
+RSpec/ExampleLength:
+  Max: 35
+
+RSpec/NestedGroups:
+  Max: 6
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/LetSetup:
+  Enabled: false
+
+RSpec/Focus: # run ALL tests on CI
+  Enabled: true
+  Exclude: []
+
+RSpec/ImplicitSubject:
+  Exclude:
+    - spec/graphql/resolvers/**/*_spec.rb

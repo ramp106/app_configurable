@@ -1,0 +1,60 @@
+Rails:
+  Enabled: true
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+Rails/ReversibleMigration:
+  Enabled: false
+
+Rails/CreateTableWithTimestamps:
+  Enabled: false
+
+Rails/RakeEnvironment:
+  Enabled: false
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
+
+Rails/NotNullColumn:
+  Enabled: false
+
+Rails/Exit:
+  Enabled: false
+
+Rails/ApplicationController:
+  Enabled: false
+
+Rails/Output: # Don't leave puts-debugging
+  Enabled: true
+  Exclude: []
+
+Rails/OutputSafety:
+  Enabled: true
+  Exclude:
+    - app/admin/**/*
+    - app/helpers/admin/**/*
+    - app/views/admin/**/*
+    - app/inputs/**/*
+
+Rails/FindEach: # each could severely affect the performance, use find_each
+  Enabled: true
+  Exclude: []
+
+Rails/UniqBeforePluck: # uniq.pluck and not pluck.uniq
+  Enabled: true
+  Exclude: []
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - staging
+    - development
+    - test
+
+Rails/I18nLocaleTexts:
+  Exclude:
+    - app/admin/**/*

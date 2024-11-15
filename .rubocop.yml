@@ -1,0 +1,38 @@
+require:
+  - rubocop-performance # https://docs.rubocop.org/rubocop-performance/cops_performance.html
+  - rubocop-rails # https://docs.rubocop.org/rubocop-rails/cops_rails.html
+  - rubocop-rspec # https://docs.rubocop.org/rubocop-rspec/cops_rspec.html
+  - rubocop-rspec_rails # https://docs.rubocop.org/rubocop-rspec/cops_rspec_rails.html
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.1.0
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Max: 120
+
+inherit_mode:
+  merge:
+    - Exclude
+
+inherit_from:
+  - .rubocop/rails.yml
+  - .rubocop/rspec.yml
+  - .rubocop/custom.yml
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false
