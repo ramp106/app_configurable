@@ -32,7 +32,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'dotenv'
 
-  spec.add_development_dependency 'byebug'
   spec.add_development_dependency 'rails', '> 7.1'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'rspec', '~> 3.0'

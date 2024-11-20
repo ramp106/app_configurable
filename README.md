@@ -46,7 +46,7 @@ Example: `entry :rails_serve_static_files`.
    2) Gets value from `test` environment attribute.
    3) Returns `some_super_dummy_#{namespaced_attribute_name}`, ignores specified `default` attribute.
 
-### Setting the environment
+### Setting the environment:
 You could set environment per namespace like so:
 
 Given namespace `AppConfig::MyNiceConfigClass` and `.env.staging`
@@ -56,6 +56,18 @@ APPCONFIG_MYNICEMODULE_ENV=staging rspec
 ```
 
 *`.env.#{RAILS_ENV}` will be read per specific `AppConfig::SomeNiceClass` class.*
+
+### Fail on startup:
+Create a new initializer in `config/initializers/_app_config.rb`
+
+```
+# Require your config files
+require './config/app_config' # Root-level configs.
+FileList['./config/app_config/*.rb'].each { |file| require file } # Secondary-level/namespaced configs.
+
+missing = AppConfigurable.missing_required_vars
+missing.present? and raise "Missing required ENV variables/encrypted credentials: #{missing.inspect}"
+```
 
 ### TODO:
  - Read `Rails.application.credentials`
