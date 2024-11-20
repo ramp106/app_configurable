@@ -65,7 +65,10 @@ jobs:
   publish:
     needs: [test, lint, version-changed]
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      id-token: write
+    environment: release
     steps:
       # Set up
       - uses: actions/checkout@v4
