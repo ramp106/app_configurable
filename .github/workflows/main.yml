@@ -61,29 +61,18 @@ jobs:
     - name: Run specs
       run: bundle exec rspec
 
+
   publish:
     needs: [test, lint, version-changed]
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 3.3
-        bundler-cache: true
-
-    - name: Publish gem
-      env:
-        REPO_NAME: ${{ github.event.repository.name }}
-        GIT_SHA: ${{ github.sha }}
-      run:
-       |
-        set -xe
-
-        mkdir -p ~/.gem
-        touch ~/.gem/credentials
-        chmod 600 ~/.gem/credentials
-        printf -- "---\n:github: Bearer ${{ secrets.GITHUB_TOKEN }}\n" > ~/.gem/credentials
-        ruby .github/workflows/set_version.rb
-        gem build app_configurable
-        gem push app_configurable-*.gem --key github --host https://rubygems.pkg.github.com/ramp106
+      # Set up
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: 3.1
+      # Release
+      - uses: rubygems/release-gem@v1
