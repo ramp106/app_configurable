@@ -18,8 +18,24 @@ module AppConfigurable
     owner.include InstanceMethods
   end
 
+  # Returns the list of available configuration attributes,
+  # which are defined with the `entry` method.
+  # @return [Array]
   def self.available_config_attributes
     @@available_config_attributes
+  end
+
+  # @param paths [Array] List of paths to load.
+  # @param raise_on_missing [Boolean] Raise an error if required variables are missing, default is `false`.
+  # @return [void]
+  def self.load_configs(paths = [], raise_on_missing: false)
+    paths.each do |path|
+      absolute_path = Dir.pwd + "/#{path}"
+
+      File.directory?(absolute_path) ? Dir["#{absolute_path}/**/*.rb"].each { |f| require f } : require(absolute_path)
+    end
+
+    raise_on_missing && missing_required_vars.any? && raise(Error::RequiredVarMissing, missing_required_vars.join(', '))
   end
 
   # Report missing required `ENV` variables.
@@ -118,16 +134,14 @@ module AppConfigurable
       attrs.each { |k, v| public_send(:"#{k}=", v) }
     end
 
-    # A *copy* of the credentials for value-reading purposes.
-    # @return [Hash]
-    def credentials
-      @credentials ||= ::Rails.application&.credentials.to_h
-    end
-
     # A *copy* of the environment for value-reading purposes.
     # @return [Hash]
     def env
-      @env ||= ::Rails.env == rails_env ? ENV.to_h : ::Dotenv.parse(".env.#{rails_env}")
+      @env ||=
+        begin
+          result = ::Rails.env == rails_env ? ENV.to_h : ::Dotenv.parse(".env.#{rails_env}")
+          result.deep_transform_keys!(&:downcase).with_indifferent_access
+        end
     end
 
     # @!attribute rails_env
@@ -171,13 +185,13 @@ module AppConfigurable
 
     # @see #env_truthy?
     def env_falsey?(key)
-      self.class.env_value_falsey?(secrets[key.to_s])
+      self.class.env_value_falsey?(env[key.to_s])
     end
 
     # @param key [String/Symbol]
     # @return [String/Boolean] The value of the environment variable, converts `bolean`'ish values into boolean.
     def env_value(key)
-      v = secrets.dig(*key)
+      v = env.dig(*key)
       v = env_truthy?(key) if env_boolean?(key)
       v
     end
@@ -190,7 +204,7 @@ module AppConfigurable
     # @param key [String]
     # @return [Boolean]
     def env_truthy?(key)
-      self.class.env_value_truthy?(secrets[key.to_s])
+      self.class.env_value_truthy?(env[key.to_s])
     end
 
     # @param name [Symbol/String]
@@ -209,7 +223,7 @@ module AppConfigurable
       result = default_value.call(dummy_value) if result.nil?
       if result.nil?
         raise Error::RequiredVarMissing,
-              "Required ENV variable or credential missing: #{self.class.name}.#{name}"
+              "Required ENV variable is missing: #{self.class.name}.#{name}"
       end
 
       result
@@ -232,14 +246,6 @@ module AppConfigurable
       send(:env)
     end
 
-    # TODO: Implement this. Currently it's not re-reading secrets after enviromnemt change.
-    # Recalculates the `credentials` hash.
-    # @return [void]
-    def recalculate_credentials
-      remove_instance_variable(:@credentials) if instance_variable_defined?(:@credentials)
-      send(:credentials)
-    end
-
     # Recalculates the values of all the attributes.
     # @return [void]
     def recalculate_values
@@ -247,12 +253,6 @@ module AppConfigurable
         remove_instance_variable(:"@#{a}") if instance_variable_defined?(:"@#{a}")
         send(a)
       end
-    end
-
-    # Joint hash of `ENV` and `Rails.application.credentials`
-    # @return [HashWithIndifferentAccess]
-    def secrets
-      { **env }.deep_transform_keys!(&:downcase).with_indifferent_access
     end
   end
 end

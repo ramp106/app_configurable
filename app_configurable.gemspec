@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['Dmytro Pasichnyk']
   spec.email = ['dmytro.pasichnyk@omr.com']
 
-  spec.summary = 'AppConfigurable allows you to configure your application with a simple DSL including environment-specific configuration, define fallbacks etc.' # rubocop:disable Layout/LineLength
+  spec.summary = 'AppConfigurable allows you to configure your application with a simple DSL including environment-specific configuration, define fallbacks etc.'
   spec.description = spec.summary
   spec.homepage = 'https://github.com/ramp106/app_configurable.git'
   spec.license = 'MIT'

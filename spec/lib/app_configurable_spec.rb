@@ -2,6 +2,7 @@
 
 RSpec.describe AppConfigurable do
   let(:const_name) { 'AppConfigTest' }
+  let(:current_env) { ENV.to_h.deep_transform_keys!(&:downcase).with_indifferent_access }
   let(:host_class) do
     Class.new do
       include AppConfigurable
@@ -15,7 +16,9 @@ RSpec.describe AppConfigurable do
     end
   end
 
-  before do
+  before do |example|
+    next if example.metadata[:skip_host_class]
+
     stub_const(const_name, host_class)
   end
 
@@ -28,6 +31,58 @@ RSpec.describe AppConfigurable do
   end
 
   describe 'class methods' do
+    describe '.available_config_attributes' do
+      context 'when there are classes with `AppConfigurable` module included' do
+        it 'returns a list of available config attributes' do
+          expect(described_class.available_config_attributes.map(&:name)).to eq %i[attr1 attr2 attr3 attr4 attr5]
+        end
+      end
+
+      context 'when there are no classes with `AppConfigurable` module included' do
+        it 'returns nothing', :skip_host_class do
+          expect(described_class.available_config_attributes).to eq []
+        end
+      end
+    end
+
+    describe '.load_configs', :skip_host_class do
+      subject { described_class.load_configs(paths) }
+
+      let(:paths) { %w[./spec/fixtures/app_config1.rb ./spec/fixtures/app_config1] }
+
+      context 'when there are no really malformed files' do
+        it 'generally works' do
+          subject
+          expect(described_class.available_config_attributes.map(&:name)).to eq %i[appconfig1_entry awesome_duplicate_entry awesome_entry]
+        end
+
+        context 'when `raise_on_missing` is set to `true`' do
+          it 'raises a correct exception' do
+            expect_any_instance_of(AppConfig1).to receive(:rails_env).at_least(:once).and_return(ActiveSupport::StringInquirer.new('development')) # rubocop:disable RSpec/AnyInstance
+            expect { described_class.load_configs(paths, raise_on_missing: true) }.to raise_error AppConfigurable::Error::RequiredVarMissing, 'AppConfig1.appconfig1_entry'
+          end
+        end
+      end
+
+      context 'when there are malformed files' do
+        context 'when incorrect extension' do
+          let(:paths) { %w[./spec/fixtures/random_extension.rvm] }
+
+          it 'raises a correct exception' do
+            expect { subject }.to raise_error LoadError
+          end
+        end
+
+        context 'when `AppConfigurable` is not included' do
+          let(:paths) { %w[./spec/fixtures/file_without_inclusion.rb] }
+
+          it 'raises a correct exception' do
+            expect { subject }.to raise_error NoMethodError
+          end
+        end
+      end
+    end
+
     describe '.missing_required_vars' do
       subject { described_class.missing_required_vars }
 
@@ -134,12 +189,6 @@ RSpec.describe AppConfigurable do
       end
     end
 
-    describe '#credentials' do
-      it 'generally works' do
-        expect(instance.credentials).to be_a Hash
-      end
-    end
-
     describe '#env' do
       subject { instance.env }
 
@@ -147,7 +196,7 @@ RSpec.describe AppConfigurable do
         let(:instance) { host_class.new }
 
         it 'returns `ENV`' do
-          expect(subject).to eq ENV.to_h
+          expect(subject).to eq current_env
         end
       end
 
@@ -156,7 +205,7 @@ RSpec.describe AppConfigurable do
 
         it 'parses appropriate `.env.*` files' do
           expect(Dotenv).to receive(:parse).with('.env.development').once.and_return({ super_attribute: 1 })
-          expect(subject).to eq({ super_attribute: 1 })
+          expect(subject).to eq({ 'super_attribute' => 1 })
         end
       end
     end
@@ -235,7 +284,7 @@ RSpec.describe AppConfigurable do
           let(:positive_value) { 'y' }
           let(:value) { positive_value }
 
-          before { allow(instance).to receive(:secrets).and_return({ key => value }) }
+          before { allow(instance).to receive(:env).and_return({ key => value }) }
 
           context 'when value is positive' do
             it { is_expected.to be true }
@@ -255,7 +304,7 @@ RSpec.describe AppConfigurable do
         let(:key) { 'val1' }
         let(:value) { 'value' }
 
-        before { allow(instance).to receive(:secrets).and_return({ key => value }) }
+        before { allow(instance).to receive(:env).and_return({ key => value }) }
 
         context 'when value is boolean\'ish' do
           let(:value) { 'true' }
@@ -290,7 +339,7 @@ RSpec.describe AppConfigurable do
         context 'when `ENV` value is present' do
           let(:value) { 'env_value' }
 
-          before { allow(instance).to receive(:secrets).and_return({ name => value }) }
+          before { allow(instance).to receive(:env).and_return({ name => value }) }
 
           it 'returns value from `ENV`' do
             expect(subject).to eq value
@@ -338,7 +387,7 @@ RSpec.describe AppConfigurable do
               expect do
                 subject
               end.to raise_error AppConfigurable::Error::RequiredVarMissing,
-                                 "Required ENV variable or credential missing: #{host_class.name}.#{name}"
+                                 "Required ENV variable is missing: #{host_class.name}.#{name}"
             end
           end
         end
@@ -368,15 +417,14 @@ RSpec.describe AppConfigurable do
       describe '#recalculate_env' do
         subject { instance.send(:recalculate_env) }
 
-        let(:reference_env) { ENV.to_h }
-        let(:new_env) { { some_reference_attribute: 1 } }
+        let(:new_env) { { 'some_reference_attribute' => 1 } }
 
         it 'generally works' do
           instance.env
           instance.instance_variable_set(:@env, new_env)
           expect(instance.env).to eq new_env
           subject
-          expect(instance.env).to eq reference_env
+          expect(instance.env).to eq current_env
         end
       end
 
@@ -391,18 +439,6 @@ RSpec.describe AppConfigurable do
           instance.instance_variable_set(:@attr1, new_attr1)
           subject
           expect(instance.attr1).to eq reference_attr1
-        end
-      end
-
-      describe '#secrets' do
-        subject { instance.send(:secrets) }
-
-        let(:env_value) { { SUPER_ENV_VALUE: 1 } }
-
-        it 'returns `ENV`' do
-          expect(instance).to receive(:env).once.and_return(env_value)
-
-          expect(subject).to eq(env_value.deep_transform_keys!(&:downcase).with_indifferent_access)
         end
       end
     end
