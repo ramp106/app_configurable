@@ -1,0 +1,5 @@
+class RandomExtensionConfig
+  include AppConfigurable
+
+  entry :random_extension_config_entry
+end
