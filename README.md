@@ -29,11 +29,11 @@ App Configurable is a simple Ruby gem that provides a centralized and consistent
     
     Define an initializer `config/initializers/_app_config.rb`:
     ```ruby
-    AppConfigurable.load(%w[./config/app_config.rb])
+    AppConfigurable.load_configs(%w[./config/app_config.rb])
     ```
     OR
     ```ruby
-    AppConfigurable.load(%w[./config/app_config.rb], raise_on_missing: true) #  Fails on startup, reporting missing configs.
+    AppConfigurable.load_configs(%w[./config/app_config.rb], raise_on_missing: true) #  Fails on startup, reporting missing configs.
     ```
     *Alternatively, you could define your configs under the autoloading path if   failing on demand is acceptable.*
 
