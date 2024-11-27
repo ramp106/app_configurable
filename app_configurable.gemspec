@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'activesupport'
   spec.add_dependency 'dotenv'
 
   spec.add_development_dependency 'rails', '> 7.1'

@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     app_configurable (0.1.4)
+      activesupport
       dotenv
 
 GEM
