@@ -27,12 +27,19 @@ module AppConfigurable
 
   # @param paths [Array] List of paths to load.
   # @param raise_on_missing [Boolean] Raise an error if required variables are missing, default is `false`.
+  # @param rails_env [String/] Rails environment.
   # @return [void]
-  def self.load_configs(paths = [], raise_on_missing: false)
-    paths.each do |path|
+  def self.load_configs(paths = [], raise_on_missing: false, rails_env: Rails.env) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    rails_env = ActiveSupport::StringInquirer.new(rails_env) unless rails_env.is_a?(ActiveSupport::StringInquirer)
+
+    paths.map do |path|
       absolute_path = Dir.pwd + "/#{path}"
 
       File.directory?(absolute_path) ? Dir["#{absolute_path}/**/*.rb"].each { |f| require f } : require(absolute_path)
+    end
+
+    available_config_attributes.collect(&:receiver).uniq.each do |klass|
+      klass.instance.send(:rails_env=, rails_env, swallow_errors: true)
     end
 
     raise_on_missing && missing_required_vars.any? && raise(Error::RequiredVarMissing, missing_required_vars.join(', '))
@@ -150,14 +157,15 @@ module AppConfigurable
       @rails_env ||= submodule_env || ::Rails.env
     end
 
-    def rails_env=(value)
+    def rails_env=(value, swallow_errors: false)
       @rails_env =
         begin
           wrapper_klass = ActiveSupport::StringInquirer
-          value.is_a?(wrapper_klass) ? value : wrapper_klass.new(value)
+          submodule_env || (value.is_a?(wrapper_klass) ? value : wrapper_klass.new(value))
         end
+
       recalculate_env
-      recalculate_values
+      recalculate_values(swallow_errors:)
     end
 
     # @return [ActiveSupport::StringInquirer/nil]
@@ -246,12 +254,19 @@ module AppConfigurable
       send(:env)
     end
 
-    # Recalculates the values of all the attributes.
+    # Recalculates values of all attributes.
+    # @param swallow_errors [Boolean] Don't raise an exception in case of missing attributes, default is `false`.
     # @return [void]
-    def recalculate_values
+    def recalculate_values(swallow_errors: false)
       self.class.config_attributes.each do |a|
+        instance_variable_get(:"@#{a}")
         remove_instance_variable(:"@#{a}") if instance_variable_defined?(:"@#{a}")
-        send(a)
+
+        begin
+          send(a)
+        rescue Error::RequiredVarMissing
+          swallow_errors ? next : raise
+        end
       end
     end
   end

@@ -17,6 +17,9 @@ RSpec.describe AppConfigurable do
   end
 
   before do |example|
+    described_class.class_variable_set(:@@available_config_attributes, []) # rubocop:disable  Style/ClassVars
+    $LOADED_FEATURES.reject! { |path| path.include?('/spec/fixtures/') }
+
     next if example.metadata[:skip_host_class]
 
     stub_const(const_name, host_class)
@@ -58,8 +61,25 @@ RSpec.describe AppConfigurable do
 
         context 'when `raise_on_missing` is set to `true`' do
           it 'raises a correct exception' do
-            expect_any_instance_of(AppConfig1).to receive(:rails_env).at_least(:once).and_return(ActiveSupport::StringInquirer.new('development')) # rubocop:disable RSpec/AnyInstance
-            expect { described_class.load_configs(paths, raise_on_missing: true) }.to raise_error AppConfigurable::Error::RequiredVarMissing, 'AppConfig1.appconfig1_entry'
+            expect do
+              described_class.load_configs(paths, raise_on_missing: true, rails_env: 'development')
+            end.to raise_error AppConfigurable::Error::RequiredVarMissing, 'AppConfig1.appconfig1_entry, Awesome.awesome_duplicate_entry, Awesome.awesome_entry'
+          end
+        end
+
+        context 'when `rails_env` is set' do
+          context 'when `rails_env` is an instance of `ActiveSupport::StringInquirer`' do
+            it 'generally works' do
+              described_class.load_configs(paths, rails_env: ActiveSupport::StringInquirer.new('development'))
+              expect(AppConfig1.instance.rails_env.development?).to be true
+            end
+          end
+
+          context 'when `rails_env` is an instance of `String`' do
+            it 'generally works' do
+              described_class.load_configs(paths, rails_env: 'development')
+              expect(AppConfig1.instance.rails_env.development?).to be true
+            end
           end
         end
       end
@@ -439,6 +459,37 @@ RSpec.describe AppConfigurable do
           instance.instance_variable_set(:@attr1, new_attr1)
           subject
           expect(instance.attr1).to eq reference_attr1
+        end
+
+        context 'when environment is not `test`' do
+          subject do
+            instance.instance_variable_set(:@rails_env, ActiveSupport::StringInquirer.new('development'))
+            instance.send(:recalculate_values, swallow_errors: should_swallow_errors)
+          end
+
+          let(:host_class) do
+            Class.new do
+              include AppConfigurable
+
+              entry :attr1
+            end
+          end
+
+          let(:should_swallow_errors) { false }
+
+          context 'when `swallow_errors` is `false`' do
+            it 'raises an error' do
+              expect { subject }.to raise_error AppConfigurable::Error::RequiredVarMissing, 'Required ENV variable is missing: AppConfigTest.attr1'
+            end
+          end
+
+          context 'when `swallow_errors` is `true`' do
+            let(:should_swallow_errors) { true }
+
+            it 'swallows errors' do
+              expect { subject }.not_to raise_error
+            end
+          end
         end
       end
     end

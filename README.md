@@ -33,9 +33,13 @@ App Configurable is a simple Ruby gem that provides a centralized and consistent
     ```
     OR
     ```ruby
+    AppConfigurable.load_configs(%w[./config/app_config.rb], rails_env: 'production') #  Set's environment to `production`.
+    ```
+    OR
+    ```ruby
     AppConfigurable.load_configs(%w[./config/app_config.rb], raise_on_missing: true) #  Fails on startup, reporting missing configs.
     ```
-    *Alternatively, you could define your configs under the autoloading path if   failing on demand is acceptable.*
+    *Alternatively, you could define your configs under the autoloading path if failing on demand is acceptable.*
 
 4. Access your configurations:
     ```ruby
@@ -97,7 +101,16 @@ Example: `entry :rails_serve_static_files`.
   3. Return `some_super_dummy_#{namespaced_attribute_name}`, **ignoring the specified `default` attribute**.
 
 ### Setting the Environment
-You can set the environment per namespace like so:
+By default your environment will is set from `Rails.env`.
+
+#### Globally, when initialising configs:
+
+ `AppConfigurable.load_configs(%w[./config/app_config.rb], rails_env: 'production')`.
+
+*Might be useful to disable error reporting for assets precompilation or any rake tasks which don't require secrets but loading full rails environment.*
+
+
+#### Per namespace:
 
 Given namespace `AppConfig::MyNiceConfigClass` and `.env.staging`:
 
